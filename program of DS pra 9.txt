@@ -1,0 +1,123 @@
+PROGRAM:
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct Node {
+    int key;
+    int value;
+    struct Node* next;
+} Node;
+
+
+typedef struct HashTable {
+    Node** table;
+    int size;
+} HashTable;
+
+
+Node* createNode(int key, int value) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->key = key;
+    newNode->value = value;
+    newNode->next = NULL;
+    return newNode;
+}
+
+
+HashTable* createHashTable(int size) {
+	int i;
+    HashTable* ht = (HashTable*)malloc(sizeof(HashTable));
+    ht->size = size;
+    ht->table = (Node*)malloc(size * sizeof(Node));
+    for (i = 0; i < size; i++) {
+        ht->table[i] = NULL;
+    }
+    return ht;
+}
+
+
+int hashFunction(int key, int size) {
+    return key % size;
+}
+
+
+void insertChaining(HashTable* ht, int key, int value) {
+    int index = hashFunction(key, ht->size);
+    Node* newNode = createNode(key, value);
+
+    if (ht->table[index] == NULL) {
+        ht->table[index] = newNode;
+    } else {
+        Node* temp = ht->table[index];
+        while (temp->next != NULL) {
+            temp = temp->next;
+        }
+        temp->next = newNode;
+    }
+}
+
+
+int searchChaining(HashTable* ht, int key) {
+    int index = hashFunction(key, ht->size);
+    Node* temp = ht->table[index];
+    while (temp != NULL) {
+        if (temp->key == key) {
+            return temp->value;
+        }
+        temp = temp->next;
+    }
+    return -1; // Key not found
+}
+
+
+void displayHashTableChaining(HashTable* ht) {
+	int i;
+    for (i = 0; i < ht->size; i++) {
+        printf("Index %d: ", i);
+        Node* temp = ht->table[i];
+        while (temp != NULL) {
+            printf("(%d, %d) -> ", temp->key, temp->value);
+            temp = temp->next;
+        }
+        printf("NULL\n");
+    }
+}
+
+
+void freeHashTableChaining(HashTable* ht) {
+	int i;
+    for ( i = 0; i < ht->size; i++) {
+        Node* temp = ht->table[i];
+        while (temp != NULL) {
+            Node* toFree = temp;
+            temp = temp->next;
+            free(toFree);
+        }
+    }
+    free(ht->table);
+    free(ht);
+}
+
+int main() {
+    HashTable* ht = createHashTable(10);
+
+    insertChaining(ht, 1, 100);
+    insertChaining(ht, 11, 200);
+    insertChaining(ht, 21, 300);
+
+    printf("Hash table with chaining:\n");
+    displayHashTableChaining(ht);
+
+    int key = 11;
+    int value = searchChaining(ht, key);
+    if (value != -1) {
+        printf("Value for key %d: %d\n", key, value);
+    } else {
+        printf("Key %d not found.\n", key);
+    }
+
+    freeHashTableChaining(ht);
+    return 0;
+}

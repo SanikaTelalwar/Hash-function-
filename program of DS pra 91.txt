@@ -1,0 +1,104 @@
+PROGRAM: 
+
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    int key;
+    int value;
+    int occupied; 
+} HashEntry;
+
+typedef struct {
+    HashEntry* table;
+    int size;
+} HashTable;
+
+
+HashTable* createHashTable(int size) {
+	int i;
+    HashTable* ht = (HashTable*)malloc(sizeof(HashTable));
+    ht->size = size;
+    ht->table = (HashEntry*)malloc(size * sizeof(HashEntry));
+    for (i = 0; i < size; i++) {
+        ht->table[i].occupied = 0;
+    }
+    return ht;
+}
+
+
+int hashFunction(int key, int size) {
+    return key % size;
+}
+
+
+void insertLinearProbing(HashTable* ht, int key, int value) {
+    int index = hashFunction(key, ht->size);
+    while (ht->table[index].occupied == 1) {
+        index = (index + 1) % ht->size; 
+    }
+    ht->table[index].key = key;
+    ht->table[index].value = value;
+    ht->table[index].occupied = 1;
+}
+
+
+int searchLinearProbing(HashTable* ht, int key) {
+    int index = hashFunction(key, ht->size);
+    int startIndex = index;
+
+    while (ht->table[index].occupied != 0) {
+        if (ht->table[index].occupied == 1 && ht->table[index].key == key) {
+            return ht->table[index].value;
+        }
+        index = (index + 1) % ht->size;
+
+        
+        if (index == startIndex) {
+            break;
+        }
+    }
+    return -1; 
+}
+
+
+void displayHashTableLinearProbing(HashTable* ht) {
+	int i;
+    for (i = 0; i < ht->size; i++) {
+        if (ht->table[i].occupied == 1) {
+            printf("Index %d: (%d, %d)\n", i, ht->table[i].key, ht->table[i].value);
+        } else {
+            printf("Index %d: EMPTY\n", i);
+        }
+    }
+}
+
+
+void freeHashTableLinearProbing(HashTable* ht) {
+    free(ht->table);
+    free(ht);
+}
+
+int main() {
+    HashTable* ht = createHashTable(10);
+
+    insertLinearProbing(ht, 1, 100);
+    insertLinearProbing(ht, 11, 200);
+    insertLinearProbing(ht, 21, 300);
+
+    printf("Hash table with linear probing:\n");
+    displayHashTableLinearProbing(ht);
+
+    int key = 11;
+    int value = searchLinearProbing(ht, key);
+    if (value != -1) {
+        printf("Value for key %d: %d\n", key, value);
+    } else {
+        printf("Key %d not found.\n", key);
+    }
+
+    freeHashTableLinearProbing(ht);
+    return 0;
+}
+
+
